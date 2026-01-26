@@ -89,7 +89,6 @@ services:
     build: ./search-builder-mcp
     container_name: search-builder-mcp
     environment:
-      # MCP 通过 Streamable HTTP 访问
       - SEARCH_BUILDER_API_BASE=http://ingest-api:8080
       - PORT=9000
     ports:

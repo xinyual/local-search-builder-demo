@@ -490,7 +490,7 @@ def bulk_index_chunks_batched_docling(
     local_root: str,
     converter: DocumentConverter,
     batch_size: int = 200,             # OpenSearch bulk batch size (chunks)
-    docling_batch_size: int = 8,       # Docling convert batch size (files)
+    docling_batch_size: int = 1,       # Docling convert batch size (files)
 ) -> Tuple[int, int, int]:
     """
     Batch-convert files with Docling (convert_all), then chunk and bulk index.

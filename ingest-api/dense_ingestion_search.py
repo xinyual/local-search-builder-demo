@@ -2,14 +2,14 @@ from opensearchpy import OpenSearch
 
 def create_dense_ingest_pipeline(client: OpenSearch, dense_model_id, pipeline_name):
     body = {
-          "description": "Generate passage_embedding for ingested documents",
+          "description": "A text embedding pipeline",
           "processors": [
             {
-              "ml_inference": {
+              "text_embedding": {
                 "model_id": dense_model_id,
-                  "field_map": {
-                      "passage_text": "passage_dense_embedding"
-                  }
+                "field_map": {
+                  "passage_text": "passage_dense_embedding"
+                }
               }
             }
           ]

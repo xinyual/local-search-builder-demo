@@ -239,7 +239,6 @@ server.tool(
 // Streamable HTTP (Remote MCP)
 // ------------------------------
 async function main() {
-  // createMcpExpressApp() 给了安全默认配置（可留着）
   const app = express();
   app.use(express.json({ limit: "5mb" }));
 
@@ -271,7 +270,6 @@ async function main() {
     }
   });
 
-  // ✅ Docker 里必须 0.0.0.0
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Search Builder MCP Server running on :${PORT}`);
     console.log(`📡 MCP Endpoint: http://0.0.0.0:${PORT}/mcp`);
