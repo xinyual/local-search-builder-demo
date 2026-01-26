@@ -1,0 +1,10 @@
+fastapi==0.115.0
+uvicorn==0.30.6
+langchain-text-splitters
+boto3==1.35.0
+opensearch-py==2.6.0
+requests==2.32.3
+tqdm==4.66.5
+tree_sitter
+docling-core[chunking]
+docling==2.5.2
