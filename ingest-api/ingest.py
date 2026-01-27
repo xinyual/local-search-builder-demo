@@ -1,3 +1,6 @@
+import json
+import time
+
 from fast_requests import *
 from responses import *
 from constants import *
@@ -19,9 +22,60 @@ def ingest_entrance(req, type="BM25", task_id="", source_mode="local"):
         return ingest_s3_to_opensearch(req, type=type, task_id=task_id)
     return ingest_local_dir_to_opensearch(req, type=type, task_id=task_id)
 
+def ingest_json_files(req: LocalIngestRequest, all_paths: List[str], index_name: str):
+    all_candidate = []
+    failures = 0
+    for path in all_paths:
+        if path.endswith(".json"):
+            try:
+                all_candidate.append(
+                    {
+                        "_index": index_name,
+                        "_source": json.load(open(path))
+                    }
+                )
+            except Exception as e:
+                failures += 1
+                continue
+        elif path.endswith("jsonl"):
+            with open(path, "r") as f:
+                for line in f.readlines():
+                    try:
+                        all_candidate.append(
+                            {
+                                "_index": index_name,
+                                "_source": json.loads(line)
+                            }
+                        )
+                    except Exception as e:
+                        failures += 1
+                        continue
+    helpers.bulk(get_os_client(), all_candidate)
+    if req.scan:
+        GLOBAL_RESOURCE["watch_map"][req.index_name] = {
+            "index_name": req.index_name,
+            "folder": req.AbstractPath,
+            "type": req.type,
+            "enabled": True,
+            "interval_s": 1800,
+            "last_scan_ts": time.time(),
+        }
+        mark_ingested(req.index_name, all_paths)
+    return LocalIngestResponse(
+        AbstractPath=req.AbstractPath,
+        index_name=req.index_name,
+        parsed=len(all_candidate),
+        indexed_chunks=len(all_candidate),
+        failures=failures,
+    )
+
 
 def ingest_local_dir_to_opensearch(req: LocalIngestRequest, type="BM25", task_id="") -> LocalIngestResponse:
     os_client = get_os_client()
+    all_paths = list_files(req.AbstractPath)
+    flag = True if all_paths[0].endswith(".json") or all_paths[0].endswith(".jsonl") else False
+    if flag:
+        return ingest_json_files(req, all_paths, req.index_name)
     ensure_index(os_client, req.index_name, type)
     converter = GLOBAL_RESOURCE.get("converter")
     try:
@@ -39,15 +93,13 @@ def ingest_local_dir_to_opensearch(req: LocalIngestRequest, type="BM25", task_id
                         , topic=req.topic)
         if req.scan:
             GLOBAL_RESOURCE["watch_map"][req.index_name] = {
-                "docs": {
                     "index_name": req.index_name,
                     "folder": req.AbstractPath,
                     "type":  req.type,
                     "enabled": True,
                     "interval_s": 1800,
-                    "last_scan_ts": 0,
-                },
-            }
+                    "last_scan_ts": time.time(),
+                }
             mark_ingested(req.index_name, parsed)
 
         return LocalIngestResponse(
