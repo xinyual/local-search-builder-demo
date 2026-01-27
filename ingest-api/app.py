@@ -94,7 +94,7 @@ async def ingest_async_from_local(req: LocalIngestRequest):
     task_id = str(uuid4())
     set_task_sync(task_id, status="PENDING")
 
-
+    '''
     try:
         resolved = resolve_local_ingest_path(req.AbstractPath)
     except Exception as e:
@@ -103,7 +103,7 @@ async def ingest_async_from_local(req: LocalIngestRequest):
     print("resolved path is: " + resolved)
     # overwrite path with resolved one
     req.AbstractPath = resolved
-
+    '''
     asyncio.create_task(run_ingest_task(task_id, req, mode=req.type, source_mode='local'))
 
     return TaskCreateResponse(task_id=task_id)
