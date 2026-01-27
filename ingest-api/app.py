@@ -113,7 +113,7 @@ DENSE_QUERY_MODEL_ID = "dense_query_model_id"
 HYBRID_INGEST_PIPELINE = "hybrid_ingest_pipeline"
 
 # A small allowlist for "mainstream text docs"
-ALLOWED_EXT = {".pdf", ".txt", ".md", ".html", ".htm", ".docx", ".pptx", ".png"}
+ALLOWED_EXT = {".pdf", ".txt", ".md", ".html", ".htm", ".docx", ".pptx"}
 GLOBAL_RESOURCE = {}
 
 TASK_STATUS = {}
