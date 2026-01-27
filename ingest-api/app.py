@@ -24,11 +24,13 @@ from hybrid import *
 from preparation import *
 import asyncio
 import traceback
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions
 
 from opensearchpy import OpenSearch, helpers
 from manifest import *
 
-from docling.document_converter import DocumentConverter
+from docling.document_converter import DocumentConverter, PdfFormatOption
 
 
 DATA_ROOT = os.environ.get("DATA_ROOT", "/data")
@@ -462,7 +464,16 @@ async def init_things_bg():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    converter = DocumentConverter()
+    pdf_opts = PdfPipelineOptions()
+    pdf_opts.do_ocr = False
+    pdf_opts.do_picture_description = False
+    pdf_opts.do_table_structure = False
+    print("forbid OCR")
+    converter = DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_opts),
+        }
+    )
     GLOBAL_RESOURCE["converter"] = converter
 
     app.state.bg_tasks = []
