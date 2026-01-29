@@ -141,14 +141,24 @@ def search(req: SearchRequest):
             "size": req.size
         }
     else:
-        query_body = {
-            "query": {
-                "match":{
-                    "passage_text": req.query
-                }
-            },
-            "size": req.size
-        }
+        if len(req.target_field.strip()) > 0:
+            query_body = {
+                "query": {
+                    "match":{
+                        req.target_field: req.query
+                    }
+                },
+                "size": req.size
+            }
+        else:
+            query_body = {
+                "query": {
+                    "match":{
+                        "passage_text": req.query
+                    }
+                },
+                "size": req.size
+            }
     ret = get_os_client().transport.perform_request(
         "POST", url="/{}/_search".format(req.index), body=query_body
     )

@@ -1,6 +1,8 @@
 from typing import List
 
 from opensearchpy import OpenSearch, helpers
+from sqlite_operations import list_candidate_files
+from torchvision.datasets.utils import list_files
 
 MANIFEST_INDEX_NAME = "search_application_manifest"
 
@@ -21,6 +23,9 @@ def create_manifest_index(client: OpenSearch):
                 },
                 "topic": {
                     "type": "text"
+                },
+                "from_json": {
+                    "type": "boolean"
                 }
             }
         }
@@ -62,10 +67,13 @@ def get_manifest(client:OpenSearch, index_name: str, topic: str):
         return client.search(index=MANIFEST_INDEX_NAME, body=index_body)
 
 def update_manifest(client:OpenSearch, index_name: str, source: str, support_search_methods: List[str], topic: str):
+    candidates = list_candidate_files(source)
+    flag = True if candidates[0].endswith(".json") or candidates[0].endswith(".jsonl") else False
     update_body = {
         "index_name": index_name,
         "source": source,
         "support_search_methods": support_search_methods,
-        "topic": topic
+        "topic": topic,
+        "from_json": flag
     }
     client.index(index=MANIFEST_INDEX_NAME, body=update_body)

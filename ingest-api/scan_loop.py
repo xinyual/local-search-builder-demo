@@ -5,10 +5,6 @@ from ingest import *
 from ingest import _bulk_index_chunks_batched_docling
 from sqlite_operations import *
 
-
-
-
-
 async def scan_one_watch(index_name: str, folder: str, mode: str) -> Dict[str, Any]:
     return await asyncio.to_thread(_scan_one_watch_sync, index_name, folder, mode)
 
@@ -95,20 +91,21 @@ def due(w) -> bool:
     return (int(time.time()) - last_ts) >= interval_s
 
 async def scan_loop():
+    print("start ")
     while True:
         await asyncio.sleep(10)
 
         async with WATCH_LOCK:
             watch_items = list(GLOBAL_RESOURCE.get("watch_map", {}).items())
-        print("watch_items: ", watch_items)
+        print("watch_items: ", watch_items, flush=True)
         now = int(time.time())
         for index_name, w in watch_items:
             if not due(w):
                 continue
-
+            print("need to recheck")
             folder = w["folder"]
             mode = w.get("type", "BM25")
-
+            print("folder: ", folder)
             try:
                 await scan_one_watch(index_name=index_name, folder=folder, mode=mode)
 

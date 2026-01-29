@@ -22,6 +22,7 @@ HYBRID_INGEST_PIPELINE = "hybrid_ingest_pipeline"
 
 # A small allowlist for "mainstream text docs"
 ALLOWED_EXT = {".pdf", ".txt", ".md", ".html", ".htm", ".docx", ".pptx"}
+ALLOWED_EXT_FOR_JSON = {".json", ".jsonl"}
 GLOBAL_RESOURCE = {}
 
 TASK_STATUS = {}

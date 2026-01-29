@@ -112,6 +112,7 @@ server.tool(
     AbstractPath: z.string().min(1),
     index_name: z.string().min(1).default("docs"),
     topic: z.string().default("").describe("don't input it if you don't know"),
+    scan: z.boolean().default(false).describe("whether the files under folder will be ingested into cluster continuously"),
   },
   { title: "start_ingest_local", destructiveHint: true, idempotentHint: false },
   async (args) => {
@@ -120,6 +121,7 @@ server.tool(
       index_name: args.index_name,
       type: args.type,
       topic: args.topic,
+      scan: args.scan
     };
 
     const r = await httpJson<{ task_id: string }>("/ingest_from_local", {
@@ -217,6 +219,7 @@ server.tool(
     query: z.string().min(1),
     size: z.number().int().positive().default(5),
     mode: z.enum(["BM25", "dense", "sparse"]).default("BM25"),
+    target_field: z.string().default("").describe("The target field you want to query on. Only work when the index is from json source"),
   },
   { title: "search", readOnlyHint: true },
   async (args) => {
@@ -227,6 +230,7 @@ server.tool(
         query: args.query,
         size: args.size,
         mode: args.mode,
+        target_field: args.target_field,
       }),
       timeoutMs: 60_000,
     });

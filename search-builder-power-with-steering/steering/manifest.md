@@ -43,9 +43,13 @@ Whenever the user asks to search / query / retrieve results:
    - If multiple manifest hits are returned:
      - pick the most relevant by topic match (best effort),
        otherwise pick the most recently updated (if available)
+   - if the `from_json` in step 2 shows it's from json, we need to
+     - Call `get_mapping(index_name=...)` to get schema
+     - identify the `target_field` from schema
+   - if the `from_json` in step 2 shows it's not from json, keep the `target_field` empty
 
 4) Call `search(...)` using the selected values:
-   - `search(index=target_index, mode=mode, query=..., size=...)`
+   - `search(index=target_index, mode=mode, query=..., size=..., target_field=...)`
 
 ✅ **Hard Requirement: `index` and `mode` MUST come from `get_manifest()` output.**
 No hard-coding unless debugging.

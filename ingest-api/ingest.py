@@ -14,7 +14,7 @@ from docling.document_converter import DocumentConverter
 import shutil
 import tempfile
 from datetime import datetime, timezone
-from sqlite_operations import list_files, mark_ingested
+from sqlite_operations import list_candidate_files, mark_ingested
 
 
 def ingest_entrance(req, type="BM25", task_id="", source_mode="local"):
@@ -22,7 +22,7 @@ def ingest_entrance(req, type="BM25", task_id="", source_mode="local"):
         return ingest_s3_to_opensearch(req, type=type, task_id=task_id)
     return ingest_local_dir_to_opensearch(req, type=type, task_id=task_id)
 
-def ingest_json_files(req: LocalIngestRequest, all_paths: List[str], index_name: str):
+def ingest_json_files(all_paths: List[str], index_name: str) -> Tuple[List[str], int, int]:
     all_candidate = []
     failures = 0
     for path in all_paths:
@@ -51,31 +51,11 @@ def ingest_json_files(req: LocalIngestRequest, all_paths: List[str], index_name:
                         failures += 1
                         continue
     helpers.bulk(get_os_client(), all_candidate)
-    if req.scan:
-        GLOBAL_RESOURCE["watch_map"][req.index_name] = {
-            "index_name": req.index_name,
-            "folder": req.AbstractPath,
-            "type": req.type,
-            "enabled": True,
-            "interval_s": 1800,
-            "last_scan_ts": time.time(),
-        }
-        mark_ingested(req.index_name, all_paths)
-    return LocalIngestResponse(
-        AbstractPath=req.AbstractPath,
-        index_name=req.index_name,
-        parsed=len(all_candidate),
-        indexed_chunks=len(all_candidate),
-        failures=failures,
-    )
+    return all_paths, len(all_candidate), failures
 
 
 def ingest_local_dir_to_opensearch(req: LocalIngestRequest, type="BM25", task_id="") -> LocalIngestResponse:
     os_client = get_os_client()
-    all_paths = list_files(req.AbstractPath)
-    flag = True if all_paths[0].endswith(".json") or all_paths[0].endswith(".jsonl") else False
-    if flag:
-        return ingest_json_files(req, all_paths, req.index_name)
     ensure_index(os_client, req.index_name, type)
     converter = GLOBAL_RESOURCE.get("converter")
     try:
@@ -97,7 +77,7 @@ def ingest_local_dir_to_opensearch(req: LocalIngestRequest, type="BM25", task_id
                     "folder": req.AbstractPath,
                     "type":  req.type,
                     "enabled": True,
-                    "interval_s": 1800,
+                    "interval_s": 20,
                     "last_scan_ts": time.time(),
                 }
             mark_ingested(req.index_name, parsed)
@@ -182,6 +162,9 @@ def _bulk_index_chunks_batched_docling(
         Batch-convert files with Docling (convert_all), then chunk and bulk index.
         Returns (parsed_files, indexed_chunks, failures).
         """
+    flag = True if candidate_list[0].endswith(".json") or candidate_list[0].endswith(".jsonl") else False
+    if flag:
+        return ingest_json_files(candidate_list, index_name)
     parsed_files = []
     indexed_chunks = 0
     failures = 0
@@ -194,7 +177,6 @@ def _bulk_index_chunks_batched_docling(
         indexed_chunks += len(actions)
         actions = []
 
-    print("local path is: " + local_root)
 
     def iter_files_in_batches(candidate: List[str], n: int) -> List[List[str]]:
         buf: List[str] = []
@@ -277,9 +259,9 @@ def bulk_index_chunks_batched_docling(
     Batch-convert files with Docling (convert_all), then chunk and bulk index.
     Returns (parsed_files, indexed_chunks, failures).
     """
-    all_files = list_files(local_root)
+    all_paths = list_candidate_files(local_root)
     return _bulk_index_chunks_batched_docling(
-        client, index_name, bucket, prefix, local_root, all_files, converter, batch_size, docling_batch_size
+        client, index_name, bucket, prefix, local_root, all_paths, converter, batch_size, docling_batch_size
     )
 
 

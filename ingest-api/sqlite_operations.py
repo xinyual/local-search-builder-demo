@@ -1,11 +1,10 @@
 import sqlite3
 import os
 import datetime
-from datetime import timezone
+from datetime import timezone, datetime
 from typing import List, Tuple
 from constants import *
 STATE_DB_PATH = os.environ.get("SCAN_STATE_DB", "/app/state.db")
-
 
 def is_allowed_file(path: str) -> bool:
     ext = os.path.splitext(path)[1].lower()
@@ -13,14 +12,34 @@ def is_allowed_file(path: str) -> bool:
         return False
     return ext in ALLOWED_EXT
 
-def list_files(folder: str) -> List[str]:
+
+def is_allowed_file_json(path: str) -> bool:
+    ext = os.path.splitext(path)[1].lower()
+    if not ext:
+        return False
+    return ext in ALLOWED_EXT_FOR_JSON
+
+
+def list_candidate_files(folder: str) -> List[str]:
     out: List[str] = []
+    json_related = None
     for base, _, files in os.walk(folder):
         for f in files:
             p = os.path.join(base, f)
             if is_allowed_file(p):
+                if json_related is None:
+                    json_related = False
+                if json_related:
+                    continue
+                out.append(p)
+            if is_allowed_file_json(p):
+                if json_related is None:
+                    json_related = True
+                if not json_related:
+                    continue
                 out.append(p)
     return out
+
 
 def ensure_state_db(db_path: str = STATE_DB_PATH) -> None:
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
@@ -38,11 +57,12 @@ def ensure_state_db(db_path: str = STATE_DB_PATH) -> None:
     finally:
         conn.close()
 
+
 def select_new_files(index_name: str, folder: str, db_path: str = STATE_DB_PATH) -> List[str]:
     ensure_state_db(db_path)
     conn = sqlite3.connect(db_path)
     try:
-        files = list_files(folder)
+        files = list_candidate_files(folder)
         if not files:
             return []
 
@@ -55,7 +75,7 @@ def select_new_files(index_name: str, folder: str, db_path: str = STATE_DB_PATH)
         existing = set()
         CHUNK = 800
         for i in range(0, len(relpaths), CHUNK):
-            batch = relpaths[i:i+CHUNK]
+            batch = relpaths[i:i + CHUNK]
             q_marks = ",".join(["?"] * len(batch))
             rows = conn.execute(
                 f"SELECT relpath FROM ingested_paths WHERE index_name=? AND relpath IN ({q_marks})",
@@ -70,7 +90,7 @@ def select_new_files(index_name: str, folder: str, db_path: str = STATE_DB_PATH)
 
 
 def mark_ingested(index_name: str, recs: List[str], db_path: str = STATE_DB_PATH) -> None:
-    print("mark ingested with: ", recs)
+    print("mark as ingested", recs, index_name)
     if not recs:
         return
     ensure_state_db(db_path)

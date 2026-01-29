@@ -32,3 +32,4 @@ class SearchRequest(BaseModel):
     index: str = Field(..., description="target index")
     size: int = Field(..., description="query size")
     mode: str = Field(..., description="the search mode, can be BM25/dense/sparse")
+    target_field: str = Field("", description="the target field query on. Only work on index from json files with dynamic mapping")

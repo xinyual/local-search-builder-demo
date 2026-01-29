@@ -40,7 +40,7 @@ Use it to ingest data (S3 or local folder) and run search queries.
   - Returns: `task_id`
 
 ### Ingest (Local source)
-- `start_ingest_local(AbstractPath, index_name, type, topic)`
+- `start_ingest_local(AbstractPath, index_name, type, topic, scan)`
   - Start an async ingest task from a local folder path.
   - Returns: `task_id`
 
@@ -51,11 +51,12 @@ Use it to ingest data (S3 or local folder) and run search queries.
   - Poll task until `SUCCEEDED` or `FAILED`.
 
 ### Search
-- `search(index, query, size, mode)`
+- `search(index, query, size, mode, target_field)`
   - Execute search against a specific index.
   - `mode` can be `BM25`, `dense`, or `sparse`.
   - IMPORTANT: Every search MUST follow the Manifest-gated workflow in `steering/manifest.md`.
-
+  - set `target_field` only when you find the index is from json from its manifest.
+  
 ---
 
 ## Steering (IMPORTANT)

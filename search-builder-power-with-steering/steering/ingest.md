@@ -37,7 +37,7 @@ Notes:
 
 ## Ingest from Local Folder
 Tool:
-- `start_ingest_local(AbstractPath, index_name, type, topic)`
+- `start_ingest_local(AbstractPath, index_name, type, topic, scan)`
 
 ### Mandatory Rule (Docker)
 Local ingest runs inside the FastAPI container.
@@ -58,7 +58,7 @@ They are not visible inside the container unless mounted.
 Notes:
 - Only provide `topic` if the user clearly specifies a concrete topic.
 - Prefer using a stable mounted root path (e.g., `/data`, `/workspace`) instead of random absolute paths.
-
+- If `scan` set to true, we will continuously scan the folder and ingest new files into index.
 ---
 
 ## Required Ingest Workflow (MUST FOLLOW)
