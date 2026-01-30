@@ -19,6 +19,8 @@ The goal is to support a milestone-1 workflow:
 
 ```
 code/
+  pre-constructed/
+    docker-compose.yml
   docker-compose.yml
 
   ingest-api/
@@ -46,7 +48,19 @@ code/
 
 ## Quick Start
 
-### 1) Build Docker images
+Notice: Whether you build it locally or from pre-constructed, please change the volume mount to your local path.
+
+### 1) from pre-constructed image
+
+Go `pre-constructed/`, run
+
+```bash
+docker compose up -d
+```
+
+### 2) build locally
+
+#### 2.1) Build Docker images
 
 From the `code/` folder:
 
@@ -54,7 +68,7 @@ From the `code/` folder:
 docker compose build
 ```
 
-### 2) Start the full stack
+#### 2.2) Start the full stack
 
 ```bash
 docker compose up
