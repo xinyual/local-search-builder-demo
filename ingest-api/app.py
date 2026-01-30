@@ -70,6 +70,11 @@ async def get_task(task_id: str):
         error=t.get("error"),
     )
 
+@app.post("/get_mapping", response_model=GetMappingResponse)
+def get_mapping(req: GetMappingRequest):
+    return GetMappingResponse(result=get_os_client().transport.perform_request(
+        "GET", "/{}/_mappings".format(req.index_name)))
+
 @app.get("/health")
 def health():
     return {"ok": True, "opensearch": OPENSEARCH_URL, SPARSE_MODEL_ID: GLOBAL_RESOURCE.get(SPARSE_MODEL_ID, ""),

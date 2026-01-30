@@ -171,6 +171,25 @@ server.tool(
 );
 
 server.tool(
+  "get_mapping",
+  {
+    index_name: z.string().min(1),
+  },
+  { title: "get_mapping", readOnlyHint: true },
+  async (args) => {
+    const r = await httpJson<Json>("/get_mapping", {
+      method: "POST",
+      body: JSON.stringify({
+        index_name: args.index_name,
+      }),
+      timeoutMs: 60_000,
+    });
+
+    return { content: [{ type: "text", text: JSON.stringify(r, null, 2) }] };
+  }
+);
+
+server.tool(
   "wait_task",
   {
     task_id: z.string().min(1),

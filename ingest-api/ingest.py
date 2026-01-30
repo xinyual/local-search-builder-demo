@@ -77,7 +77,7 @@ def ingest_local_dir_to_opensearch(req: LocalIngestRequest, type="BM25", task_id
                     "folder": req.AbstractPath,
                     "type":  req.type,
                     "enabled": True,
-                    "interval_s": 20,
+                    "interval_s": 1800,
                     "last_scan_ts": time.time(),
                 }
             mark_ingested(req.index_name, parsed)

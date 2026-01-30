@@ -84,8 +84,6 @@ async def init_things_bg():
         name="wait_dense_model"
     )
 
-    await asyncio.to_thread(create_manifest_index, get_os_client())
-
     return [sparse_task, dense_task]
 
 @asynccontextmanager
@@ -103,6 +101,7 @@ async def lifespan(app: FastAPI):
     GLOBAL_RESOURCE["converter"] = converter
 
     GLOBAL_RESOURCE.setdefault("watch_map", {})
+    await asyncio.to_thread(create_manifest_index, get_os_client())
     app.state.watch_task = asyncio.create_task(scan_loop())
 
     app.state.bg_tasks = []

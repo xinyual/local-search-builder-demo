@@ -28,6 +28,9 @@ class IngestResponse(BaseModel):
     skipped: int
     failures: int
 
+class GetMappingResponse(BaseModel):
+    result: Dict[str, Any]
+
 class LocalIngestResponse(BaseModel):
     AbstractPath: str
     index_name: str

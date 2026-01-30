@@ -57,6 +57,10 @@ Use it to ingest data (S3 or local folder) and run search queries.
   - IMPORTANT: Every search MUST follow the Manifest-gated workflow in `steering/manifest.md`.
   - set `target_field` only when you find the index is from json from its manifest.
   
+### Get Mapping
+- `get_mapping(index_name)`
+  - Get the mapping of one index. You only call this when you find the index is from json according to manifest
+
 ---
 
 ## Steering (IMPORTANT)

@@ -91,30 +91,26 @@ def due(w) -> bool:
     return (int(time.time()) - last_ts) >= interval_s
 
 async def scan_loop():
-    print("start ")
+    #print("start ")
     while True:
         await asyncio.sleep(10)
 
         async with WATCH_LOCK:
             watch_items = list(GLOBAL_RESOURCE.get("watch_map", {}).items())
-        print("watch_items: ", watch_items, flush=True)
+        #print("watch_items: ", watch_items, flush=True)
         now = int(time.time())
         for index_name, w in watch_items:
             if not due(w):
                 continue
-            print("need to recheck")
+            #print("need to recheck")
             folder = w["folder"]
             mode = w.get("type", "BM25")
             print("folder: ", folder)
             try:
                 await scan_one_watch(index_name=index_name, folder=folder, mode=mode)
-
-                # 更新 last_scan_ts
                 async with WATCH_LOCK:
-                    # watch 可能被删了，做下保护
                     ww = GLOBAL_RESOURCE.get("watch_map", {}).get(index_name)
                     if ww:
                         ww["last_scan_ts"] = now
             except Exception as e:
-                # 失败不要阻塞别的 watch
                 print(f"[watch] scan failed index={index_name} folder={folder}: {e}")

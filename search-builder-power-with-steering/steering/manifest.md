@@ -8,6 +8,8 @@ This power uses a **Manifest Index** inside OpenSearch as the control plane for 
 The manifest determines:
 - which index to query (destination)
 - which search mode is allowed/preferred (BM25/dense/sparse)
+- whether the index is from json source
+  - If so, need to call `get_mapping(...)` to determine the search field
 
 Directly calling `search(...)` without a prior manifest lookup is **NOT allowed**
 unless explicitly instructed (e.g., debugging).
@@ -37,7 +39,7 @@ Whenever the user asks to search / query / retrieve results:
    - If user did not explicitly specify index/topic, call:
      - `get_manifest(index_name="", topic="")`
 
-3) Select `target_index` and `mode` **strictly from the manifest results**
+3) Select `target_index` and `mode`, `target_field` **strictly from the manifest results**
    - `target_index` MUST come from the manifest field `index_name`
    - `mode` MUST be chosen from the manifest field `supported_search_methods`
    - If multiple manifest hits are returned:

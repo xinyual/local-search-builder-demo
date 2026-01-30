@@ -26,6 +26,8 @@ class GetManifestRequest(BaseModel):
     index_name: str = Field(..., description="the target index name")
     topic: str = Field(..., description="the target topic")
 
+class GetMappingRequest(BaseModel):
+    index_name: str = Field(..., description="the target index name")
 
 class SearchRequest(BaseModel):
     query: str = Field(..., description="search queries")
