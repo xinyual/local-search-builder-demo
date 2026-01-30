@@ -105,8 +105,8 @@ async def lifespan(app: FastAPI):
     app.state.watch_task = asyncio.create_task(scan_loop())
 
     app.state.bg_tasks = []
-    bg_tasks = await init_things_bg()
-    app.state.bg_tasks.extend(bg_tasks)
+    #bg_tasks = await init_things_bg()
+    #app.state.bg_tasks.extend(bg_tasks)
 
     yield
     app.state.watch_task.cancel()
