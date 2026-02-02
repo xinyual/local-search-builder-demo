@@ -11,6 +11,35 @@ from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 from scan_loop import *
 
+from pathlib import Path
+
+WARMUP_DIR = Path("/app/warm_up_resource")
+WARMUP_EXT = {".pdf", ".png", ".jpg", ".jpeg", ".tif", ".tiff"}
+def _warmup_convert_once(converter):
+    """
+    Best-effort warmup: pick one file under /app/warm_up_resource and run convert once.
+    DO NOT raise (never block startup).
+    """
+    try:
+        if not WARMUP_DIR.exists():
+            print(f"[warmup] skip: {WARMUP_DIR} not found")
+            return
+        files = [p for p in WARMUP_DIR.rglob("*") if p.is_file() and p.suffix.lower() in WARMUP_EXT]
+        if not files:
+            print(f"[warmup] skip: no warmup files in {WARMUP_DIR}")
+            return
+
+        sample = files[0]
+        print(f"[warmup] start convert: {sample}")
+        t0 = time.time()
+        res = converter.convert(str(sample))
+        dt = time.time() - t0
+
+        doc = getattr(res, "document", None)
+        print(f"[warmup] done in {dt:.2f}s, doc_is_none={doc is None}")
+    except Exception as e:
+        print(f"[warmup] failed (ignored): {e!r}")
+
 def wait_opensearch():
     for _ in range(180):
         try:
@@ -99,6 +128,8 @@ async def lifespan(app: FastAPI):
         }
     )
     GLOBAL_RESOURCE["converter"] = converter
+
+    await asyncio.to_thread(_warmup_convert_once, converter)
 
     GLOBAL_RESOURCE.setdefault("watch_map", {})
     await asyncio.to_thread(create_manifest_index, get_os_client())
